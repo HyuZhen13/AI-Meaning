@@ -3,189 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinguistAI | Universal Dictionary</title>
+    <title>HyuzhenAI.Meaning</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = { 
+            darkMode: 'class', 
+            theme: { extend: { colors: { brand: '#d4af37' }, fontFamily: { poppins: ['Poppins', 'sans-serif'] } } } 
+        }
+    </script>
+
     <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: radial-gradient(circle at top left, #1e293b, #0f172a);
-            color: #f8fafc;
-            min-height: 100vh;
+        /* --- Global Reset & Base --- */
+        * { box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; transition: 0.5s; background: #050505; color: #fdfdfd; overflow-x: hidden; }
+        
+        /* --- UI Elements --- */
+        .glass { backdrop-filter: blur(20px); border: 1px solid rgba(212, 175, 55, 0.1); background: rgba(255, 255, 255, 0.02); }
+        .gold-glow { box-shadow: 0 0 30px rgba(212, 175, 55, 0.1); }
+        
+        /* --- Card Imperial Design --- */
+        .card-imperial { 
+            background: linear-gradient(145deg, #1a1a1a 0%, #0a0a0a 100%) !important; 
+            border: 2px solid #d4af37 !important; 
+            position: relative; 
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
         }
-        .glass {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        
+        /* Tekstur Linen Premium */
+        .card-imperial::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: url("https://www.transparenttextures.com/patterns/black-linen-2.png");
+            opacity: 0.2;
+            pointer-events: none;
         }
-        .gradient-text {
-            background: linear-gradient(to right, #60a5fa, #a78bfa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+
+        /* --- Theme Toggle Support --- */
+        .light-mode { background: #fdfdfd !important; color: #1a1a1a !important; }
+        .light-mode .glass { background: rgba(0, 0, 0, 0.05); border-color: rgba(212, 175, 55, 0.3); }
+        .light-mode .card-imperial { background: #ffffff !important; color: #1a1a1a !important; border-color: #d4af37 !important; box-shadow: 0 20px 40px rgba(0,0,0,0.1) !important; }
+
+        /* --- Print Optimization --- */
+        @media print { 
+            .no-print { display: none !important; } 
+            body { background: white; color: black; padding: 0; }
+            .card-imperial { 
+                width: 100% !important; 
+                max-width: 17cm !important; 
+                margin: 0 auto !important; 
+                border: 2px solid #d4af37 !important;
+                color: black !important;
+                -webkit-print-color-adjust: exact;
+            }
         }
-        .loader {
-            border: 3px solid rgba(255,255,255,0.1);
-            border-top: 3px solid #60a5fa;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
+
+        /* --- Mobile Tuning --- */
+        @media (max-width: 768px) {
+            .card-imperial { padding: 3rem 1.5rem !important; border-radius: 2.5rem !important; }
+            #displayFullInput { font-size: 3rem !important; }
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4 md:p-12 min-h-screen">
 
-    <div class="max-w-4xl mx-auto">
-        <header class="text-center mb-12">
-            <h1 class="text-4xl md:text-5xl font-bold mb-4 gradient-text">LinguistAI</h1>
-            <p class="text-slate-400">Terjemahan mendalam dengan analisis per kata untuk ratusan bahasa.</p>
+    <button onclick="toggleTheme()" class="fixed top-5 right-5 z-50 p-4 glass rounded-full border-brand/20 text-brand no-print">
+        <i id="themeIcon" data-lucide="sun"></i>
+    </button>
+
+    <div class="max-w-6xl mx-auto">
+        <header class="flex justify-between items-center mb-12 no-print">
+            <div>
+                <h1 class="text-4xl font-800 tracking-tighter uppercase italic text-brand">HyuzhenAI Meaning <span class="text-white opacity-40">1000+</span></h1>
+                <p class="text-[9px] tracking-[0.5em] text-brand font-bold uppercase">Temukan Arti Namamu !!!</p>
+            </div>
         </header>
 
-        <div class="glass rounded-3xl p-6 mb-8 shadow-2xl">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <select id="sourceLang" class="bg-slate-800 border border-slate-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="auto">Deteksi Otomatis</option>
-                    <option value="en">Inggris</option>
-                    <option value="id" selected>Indonesia</option>
-                    <option value="ja">Jepang</option>
-                    <option value="ar">Arab</option>
-                    <option value="fr">Prancis</option>
-                    <option value="de">Jerman</option>
-                    <option value="ko">Korea</option>
-                </select>
-                <select id="targetLang" class="bg-slate-800 border border-slate-700 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="en" selected>Inggris</option>
-                    <option value="id">Indonesia</option>
-                    <option value="ja">Jepang</option>
-                    <option value="ar">Arab</option>
-                    <option value="ko">Korea</option>
-                    <option value="es">Spanyol</option>
-                </select>
-            </div>
+        <div class="glass rounded-[3rem] p-10 mb-12 border border-brand/20 no-print gold-glow">
+            <input id="nameInput" type="text" class="w-full bg-transparent border-none text-3xl md:text-5xl font-light outline-none mb-8 placeholder:opacity-10 text-brand" placeholder="Ketiklah nama indahmu...">
+            <button onclick="analyzeName()" class="w-full bg-brand text-black py-6 rounded-2xl font-800 text-xl hover:brightness-110 active:scale-95 transition-all shadow-2xl shadow-brand/20">
+                Bedah Arti Nama 🔍
+            </button>
+        </div>
+        <br/>
 
-            <div class="relative">
-                <textarea id="inputText" rows="4" 
-                    class="w-full bg-slate-900/50 border border-slate-700 rounded-2xl p-5 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                    placeholder="Masukkan kata atau kalimat panjang di sini..."></textarea>
-                <button onclick="translateText()" id="btnTranslate" 
-                    class="absolute bottom-4 right-4 bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded-xl font-semibold flex items-center gap-2 transition-all active:scale-95">
-                    <span>Terjemahkan</span>
-                    <i data-lucide="send" class="w-4 h-4"></i>
+        <div id="resultArea" class="hidden space-y-12 mb-20">
+            <div id="captureCard" class="card-imperial rounded-[3.5rem] p-12 md:p-20 shadow-3xl">
+                <div class="flex flex-col items-center mb-10">
+                    <i data-lucide="crown" class="text-brand w-12 h-12 mb-4"></i>
+                    <p class="text-[10px] tracking-widest opacity-30 font-bold uppercase">Certified Imperial Meaning</p>
+                </div>
+                
+                <h2 id="displayFullInput" class="text-5xl md:text-8xl font-800 mb-8 tracking-tighter capitalize text-brand"></h2>
+                
+                <div id="finalInterpretation" class="text-2xl md:text-4xl font-light opacity-90 leading-relaxed mb-10 max-w-4xl"></div>
+                
+                <p id="philosophyText" class="text-xl opacity-50 italic max-w-3xl"></p>
+                
+                <div class="mt-12 flex flex-col items-center gap-2 opacity-20 no-print">
+                    <p class="text-[8px] tracking-widest uppercase font-bold text-brand">©hyuzhenai.meaning</p>
+                </div>
+
+                <button onclick="downloadCard()" class="mt-12 bg-white/5 border border-brand/20 text-brand px-8 py-4 rounded-xl hover:bg-brand hover:text-black transition-all font-bold no-print">
+                    SIMPAN .PNG
                 </button>
             </div>
-        </div>
+            
+            <div id="wordGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 no-print"></div>
 
-        <div id="resultContainer" class="hidden space-y-6">
-            <div class="glass rounded-3xl p-8 border-l-4 border-blue-500">
-                <div class="flex justify-between items-start mb-4">
-                    <h3 class="text-sm font-semibold uppercase tracking-wider text-blue-400">Arti Keseluruhan</h3>
-                    <button onclick="copyResult()" class="text-slate-400 hover:text-white"><i data-lucide="copy" class="w-5 h-5"></i></button>
-                </div>
-                <p id="mainTranslation" class="text-2xl font-light leading-relaxed"></p>
+            <div id="historySection" class="hidden no-print">
+                <h3 class="text-xl font-800 text-brand mb-6 uppercase tracking-[0.3em] border-b border-brand/20 pb-2">Log Riwayat Sesi</h3>
+                <div id="historyList" class="space-y-3"></div>
             </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="glass rounded-3xl p-6">
-                    <h3 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-purple-400 mb-4">
-                        <i data-lucide="layers" class="w-4 h-4"></i> Analisis Per Kata
-                    </h3>
-                    <div id="wordBreakdown" class="space-y-3">
-                        </div>
-                </div>
-
-                <div class="glass rounded-3xl p-6">
-                    <h3 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-emerald-400 mb-4">
-                        <i data-lucide="book-open" class="w-4 h-4"></i> Rujukan & Konteks
-                    </h3>
-                    <div id="contextRef" class="text-slate-300 space-y-4">
-                        <p class="text-sm leading-relaxed">
-                            Konteks terdeteksi berdasarkan struktur kalimat. Gunakan rujukan ini untuk memahami nuansa budaya atau tata bahasa yang digunakan.
-                        </p>
-                        <div id="tags" class="flex flex-wrap gap-2">
-                            </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="loading" class="hidden flex justify-center py-12">
-            <div class="loader"></div>
         </div>
     </div>
 
     <script>
-        // Inisialisasi Lucide Icons
         lucide.createIcons();
+        let sessionHistory = [];
 
-        async function translateText() {
-            const text = document.getElementById('inputText').value;
-            const source = document.getElementById('sourceLang').value;
-            const target = document.getElementById('targetLang').value;
-            
-            if (!text.trim()) return;
+        // --- DATABASE A-Z ---
+        const masterDB = {
+            "adila": {m:"Adil, Bijaksana, & Lurus", o:"Arab"}, "aisyah": {m:"Hidup Makmur & Bahagia", o:"Arab"}, "akmal": {m:"Sempurna & Tanpa Cela", o:"Arab"}, "arsyifa": {m:"Penyembuh & Penawar Hati", o:"Arab"}, "azkia": {m:"Cahaya Suci & Cerdas", o:"Arab"}, "athar": {m:"Sangat Suci, Bersih, & Wangi", o:"Arab"}, "arya": {m:"Bangsawan & Terhormat", o:"Sanskerta"}, "aditya": {m:"Matahari & Sumber Terang", o:"Sanskerta"}, "anindya": {m:"Sempurna & Tak Bersalah", o:"Jawa"}, "abimanyu": {m:"Berani & Gagah Perkasa", o:"Sanskerta"}, "azizah": {m:"Mulia & Terhormat", o:"Arab"}, "azzahra": {m:"Bunga Cemerlang & Indah", o:"Arab"}, "alika": {m:"Cantik & Memikat", o:"Sanskerta"}, "afifah": {m:"Suci & Menjaga Diri", o:"Arab"}, "ahmad": {m:"Terpuji & Terhormat", o:"Arab"}, "anisa": {m:"Ramah & Lembut", o:"Arab"}, "amalia": {m:"Cita-cita & Berbakti", o:"Jerman"}, "andika": {m:"Berpangkat & Terhormat", o:"Jawa"}, "ariana": {m:"Suci & Anggun", o:"Yunani"}, "aqila": {m:"Bijak & Cerdas", o:"Arab"},"ahza": {m:"Yang Paling Beruntung", o:"Arab"},
+            "bilal": {m:"Tanda Kemenangan & Embun Pagi", o:"Arab"}, "bagas": {m:"Kuat, Teguh, & Sehat", o:"Jawa"}, "bagus": {m:"Indah, Baik, & Tampan", o:"Jawa"}, "banyu": {m:"Air Kehidupan & Tenang", o:"Jawa"}, "bayu": {m:"Angin & Kekuatan Alam", o:"Sanskerta"}, "bella": {m:"Cantik & Anggun", o:"Latin"}, "bintang": {m:"Cahaya Malam & Penunjuk", o:"Indo"}, "bima": {m:"Perkasa & Luar Biasa", o:"Sanskerta"}, "budiman": {m:"Berbudi & Bijak", o:"Jawa"}, "basir": {m:"Cermat & Melihat Jauh", o:"Arab"}, "bramasta": {m:"Senjata Sakti & Kuat", o:"Sanskerta"}, "batara": {m:"Wibawa Dewa & Agung", o:"Sanskerta"}, "bahar": {m:"Lautan Ilmu & Luas", o:"Arab"}, "bara": {m:"Semangat Api & Membara", o:"Jawa"}, "budi": {m:"Kebajikan & Akhlak", o:"Sanskerta"}, "bening": {m:"Jernih & Suci Hati", o:"Jawa"}, "berlian": {m:"Mulia & Tak Ternilai", o:"Melayu"}, "bianca": {m:"Putih & Bersinar", o:"Italia"}, "baskara": {m:"Matahari & Terang", o:"Jawa"}, "balqis": {m:"Ratu & Berwibawa", o:"Arab"},
+            "cahya": {m:"Cahaya & Harapan", o:"Jawa"}, "candra": {m:"Rembulan & Menyejukkan", o:"Sanskerta"}, "clara": {m:"Terang & Jelas", o:"Latin"}, "citra": {m:"Gambaran Indah & Nama Baik", o:"Sanskerta"}, "cinta": {m:"Kasih Sayang & Ketulusan", o:"Indo"}, "carissa": {m:"Anggun & Baik Hati", o:"Yunani"}, "chelsea": {m:"Kedamaian & Pelabuhan", o:"Inggris"}, "chika": {m:"Bunga Indah & Bersemi", o:"Jepang"}, "cakra": {m:"Roda Kehidupan & Senjata", o:"Sanskerta"}, "cantika": {m:"Terelok & Menawan", o:"Jawa"}, "cherly": {m:"Tersayang & Ceria", o:"Prancis"}, "cleo": {m:"Kemuliaan & Terkenal", o:"Yunani"}, "cempaka": {m:"Bunga Harum & Mulia", o:"Indo"}, "chairul": {m:"Kebaikan & Berkah", o:"Arab"}, "cahyaning": {m:"Sinar Indah", o:"Jawa"}, "calista": {m:"Paling Cantik", o:"Yunani"}, "candrika": {m:"Sinar Bulan", o:"Sanskerta"}, "carlie": {m:"Bebas & Kuat", o:"Jerman"}, "catra": {m:"Payung Agung", o:"Sanskerta"}, "cyra": {m:"Matahari", o:"Persia"},
+            "dwi": {m:"Kedua & Keseimbangan", o:"Sanskerta"}, "daeng": {m:"Gelar Bangsawan & Mulia", o:"Bugis"}, "danendra": {m:"Raja yang Kaya Raya", o:"Sanskerta"}, "darma": {m:"Kebaikan & Kewajiban", o:"Sanskerta"}, "damar": {m:"Pelita & Penerang", o:"Jawa"}, "dewi": {m:"Anggun & Kedewasaan", o:"Sanskerta"}, "dian": {m:"Obor & Cahaya", o:"Jawa"}, "dinda": {m:"Adik Tersayang & Lembut", o:"Melayu"}, "dzakwan": {m:"Harum Semerbak & Cerdas", o:"Arab"}, "danial": {m:"Hakim Bijak", o:"Ibrani"}, "danu": {m:"Busur & Kekuatan", o:"Sanskerta"}, "davina": {m:"Cinta & Disayangi", o:"Ibrani"}, "dhika": {m:"Kelebihan & Keutamaan", o:"Sanskerta"}, "dimas": {m:"Adik yang Mulia", o:"Jawa"}, "dahlia": {m:"Bunga Lembah & Indah", o:"Nordik"}, "daniswara": {m:"Mulia & Kaya", o:"Sanskerta"}, "darra": {m:"Mutiara Hikmah", o:"Arab"}, "deli": {m:"Terhormat", o:"Melayu"}, "dhana": {m:"Kekayaan & Dermawan", o:"Sanskerta"}, "dhia": {m:"Sinar & Kemilau", o:"Arab"},
+            "gita": {m:"Nyanyian Suci, Lagu Hati, & Indah", o:"Sanskerta"}, "galang": {m:"Penyangga, Pilar, & Semangat", o:"Jawa"}, "galih": {m:"Inti Hati, Perasaan, & Esensi", o:"Jawa"}, "gandhi": {m:"Ilmuwan, Matahari, & Berwibawa", o:"India"}, "gibran": {m:"Pandai, Bijak, & Menyatukan Kebaikan", o:"Arab"}, "ghani": {m:"Kaya Raya, Makmur, & Mandiri", o:"Arab"}, "ganendra": {m:"Pasukan Dewa, Kuat, & Pelindung", o:"Sanskerta"},
+            "hana": {m:"Bunga, Kebahagiaan, & Kasih Sayang", o:"Arab/Jepang"}, "hanif": {m:"Lurus, Suci, & Berpegang Teguh", o:"Arab"}, "hafizh": {m:"Penjaga, Penghafal, & Amanah", o:"Arab"},"husain": {m:"Baik, Tampan, & Bijaksana", o:"Arab"},"hasan": {m:"Baik, Tampan, & Bijaksana", o:"Arab"},
+            "indra": {m:"Keteguhan, Kuat, & Raja Langit", o:"Sanskerta"}, "irma": {m:"Dunia, Universal, & Kuat", o:"Jerman"}, "ismail": {m:"Didengar Tuhan, Sabar, & Ikhlas", o:"Ibrani"},
+            "jihan": {m:"Keindahan Dunia, Luas, & Megah", o:"Arab"}, "jaya": {m:"Kemenangan, Sukses, & Kejayaan", o:"Sanskerta"},
+            "karima": {m:"Mulia, Dermawan, & Murah Hati", o:"Arab"}, "kevin": {m:"Tampan, Lahir Baik, & Cerdas", o:"Irlandia"}, "kirana": {m:"Sinar Cahaya, Indah, & Elok", o:"Sanskerta"}, "lestari": {m:"Abadi, Kekal, & Menjaga", o:"Jawa"}, "maya": {m:"Kreatif, Luar Biasa, & Lembut", o:"Sanskerta"}, "nadia": {m:"Harapan, Embun Pagi, & Mulia", o:"Arab"}, "noval": {m:"Tampan, Dermawan, & Pemuda Cerdas", o:"Arab"}, "omar": {m:"Panjang Umur, Makmur, & Berjaya", o:"Arab"}, "putra": {m:"Anak Lelaki, Kebanggaan, & Berwibawa", o:"Sanskerta"}, "queen": {m:"Ratu, Pemimpin Wanita, & Mulia", o:"Inggris"}, "royan": {m:"Pintu Surga, Utama, & Mewah", o:"Arab"}, "salsabila": {m:"Mata Air Surga, Suci, & Tenang", o:"Arab"}, "tuah": {m:"Berkah, Keberuntungan, & Sakti", o:"Melayu"}, "umar": {m:"Makmur, Berjaya, & Kuat", o:"Arab"}, "vania": {m:"Anugerah Tuhan, Cantik, & Baik", o:"Ibrani"}, "wira": {m:"Pahlawan, Gagah, & Berani", o:"Sanskerta"}, "xavier": {m:"Cahaya, Terang, & Megah", o:"Arab"}, "yahya": {m:"Nabi, Kehidupan, & Diberkati", o:"Arab"}, "zaki": {m:"Cerdas, Murni, & Tajam Pikiran", o:"Arab"}, "zara": {m:"Bunga, Terang, & Cemerlang", o:"Arab"}, "sadina": {m:"Berbudi Luhur & Mulia", o:"Arab"},
+        };
 
-            // Show loading
-            document.getElementById('loading').classList.remove('hidden');
-            document.getElementById('resultContainer').classList.add('hidden');
-            
-            try {
-                // Menggunakan API MyMemory (Free & No Key required for small usage)
-                const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${source}|${target}`);
-                const data = await response.json();
-                
-                const translatedText = data.responseData.translatedText;
-                
-                displayResults(text, translatedText);
-            } catch (error) {
-                alert("Terjadi kesalahan saat mengambil data.");
-            } finally {
-                document.getElementById('loading').classList.add('hidden');
+        // --- Core Functions ---
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const icon = document.getElementById('themeIcon');
+            const isLight = document.body.classList.contains('light-mode');
+            icon.setAttribute('data-lucide', isLight ? 'moon' : 'sun');
+            lucide.createIcons();
+        }
+
+        function getSimilarity(s1, s2) {
+            let longer = s1.toLowerCase(), shorter = s2.toLowerCase();
+            if (s1.length < s2.length) { longer = s2; shorter = s1; }
+            if (longer.length == 0) return 1.0;
+            return (longer.length - editDistance(longer, shorter)) / parseFloat(longer.length);
+        }
+
+        function editDistance(s1, s2) {
+            let costs = [];
+            for (let i = 0; i <= s1.length; i++) {
+                let last = i;
+                for (let j = 0; j <= s2.length; j++) {
+                    if (i == 0) costs[j] = j;
+                    else if (j > 0) {
+                        let val = costs[j - 1];
+                        if (s1.charAt(i - 1) != s2.charAt(j - 1)) val = Math.min(Math.min(val, last), costs[j]) + 1;
+                        costs[j - 1] = last; last = val;
+                    }
+                }
+                if (i > 0) costs[s2.length] = last;
             }
+            return costs[s2.length];
         }
 
-        function displayResults(original, translated) {
-            const container = document.getElementById('resultContainer');
-            const mainText = document.getElementById('mainTranslation');
-            const breakdown = document.getElementById('wordBreakdown');
-            const tagsContainer = document.getElementById('tags');
+        function analyzeName() {
+            const input = document.getElementById('nameInput').value.trim();
+            if(!input) return;
+            const words = input.split(/\s+/);
+            let meanings = []; let gridHTML = '';
 
-            mainText.innerText = translated;
-            
-            // Logika Breakdown Per Kata (Simulasi Analisis Detail)
-            const words = original.trim().split(/\s+/);
-            breakdown.innerHTML = '';
-            
-            // Kita batasi 6 kata pertama untuk detail agar elegan
-            words.slice(0, 8).forEach(word => {
-                const div = document.createElement('div');
-                div.className = 'flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5 hover:border-blue-500/50 transition-colors';
-                div.innerHTML = `
-                    <span class="font-medium text-slate-200">${word}</span>
-                    <span class="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded">Detail Aktif</span>
-                `;
-                breakdown.appendChild(div);
+            words.forEach(word => {
+                let low = word.toLowerCase();
+                let best = low; let score = 0;
+                for (let key in masterDB) {
+                    let s = getSimilarity(low, key);
+                    if (s > score) { score = s; best = key; }
+                }
+                const d = (score > 0.6) ? masterDB[best] : {m: "Individu Mulia & Beruntung", o: "Universal"};
+                meanings.push(d.m);
+                gridHTML += `
+                    <div class="glass p-6 rounded-[2rem] border border-brand/10 hover:border-brand/50 transition-all">
+                    <br/>
+                      <span class="text-[8px] text-brand font-black uppercase tracking-widest">Bahasa: ${d.o}</span>
+                        <p class="text-xl font-800 text-white capitalize mt-2">${score > 0.6 ? best : word}</p>
+                        <p class="text-xs opacity-50 mt-1">${d.m}</p>
+                    </div>`;
             });
 
-            // Mocking context tags
-            const tags = ['Formal', 'Informal', 'Grammar Check', 'Academic'];
-            tagsContainer.innerHTML = '';
-            tags.forEach(tag => {
-                const span = document.createElement('span');
-                span.className = 'text-[10px] border border-emerald-500/30 text-emerald-400 px-2 py-1 rounded-full uppercase tracking-tighter';
-                span.innerText = tag;
-                tagsContainer.appendChild(span);
-            });
+            document.getElementById('displayFullInput').innerText = input;
+            document.getElementById('finalInterpretation').innerHTML = meanings.join("<br>");
+            document.getElementById('philosophyText').innerText = `Menjadi simbol doa agar pemiliknya tumbuh sebagai pribadi yang ${meanings.join(" sekaligus ")}.`;
+            document.getElementById('wordGrid').innerHTML = gridHTML;
+            document.getElementById('resultArea').classList.remove('hidden');
 
-            container.classList.remove('hidden');
-            window.scrollTo({ top: container.offsetTop - 20, behavior: 'smooth' });
+            sessionHistory.unshift({n: input, m: meanings.join(", "), t: new Date().toLocaleTimeString()});
+            updateHistory();
+            lucide.createIcons();
+            window.scrollTo({ top: document.getElementById('resultArea').offsetTop - 50, behavior: 'smooth' });
         }
 
-        function copyResult() {
-            const text = document.getElementById('mainTranslation').innerText;
-            navigator.clipboard.writeText(text);
-            alert("Terjemahan disalin!");
+        function updateHistory() {
+            document.getElementById('historySection').classList.remove('hidden');
+            document.getElementById('historyList').innerHTML = sessionHistory.slice(0, 5).map(h => `
+                <div onclick="document.getElementById('nameInput').value='${h.n}'; analyzeName();" class="glass p-4 rounded-xl flex justify-between items-center border-l-4 border-brand cursor-pointer hover:bg-brand/10 transition-all">
+                    <div><p class="font-800 text-brand capitalize">${h.n}</p><p class="text-[9px] opacity-40 uppercase">${h.m}</p></div>
+                    <span class="text-[9px] opacity-20">${h.t}</span>
+                </div>
+            `).join('');
+        }
+
+        function downloadCard() {
+            const card = document.getElementById('captureCard');
+            html2canvas(card, {
+                backgroundColor: document.body.classList.contains('light-mode') ? '#ffffff' : '#050505',
+                scale: 2,
+                useCORS: true
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Meaning-${document.getElementById('displayFullInput').innerText}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            });
         }
     </script>
 </body>
