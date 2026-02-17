@@ -213,9 +213,33 @@
                     </div>`;
             });
 
+            // 1. Tampilkan Nama Input
             document.getElementById('displayFullInput').innerText = input;
+            
+            // 2. Tampilkan Daftar Makna (Baris per Baris)
             document.getElementById('finalInterpretation').innerHTML = meanings.join("<br>");
-            document.getElementById('philosophyText').innerText = `Menjadi simbol doa agar pemiliknya tumbuh sebagai pribadi yang ${meanings.join(" sekaligus ")}.`;
+            
+            // 3. Logika Kalimat Filosofi Dinamis (dan, serta, sekaligus)
+            let philosophy = "";
+            if (meanings.length > 0) {
+                philosophy = meanings[0]; // Arti Pertama
+                
+                if (meanings.length > 1) {
+                    philosophy += " juga " + meanings[1]; // Arti Kedua
+                }
+                if (meanings.length > 2) {
+                    philosophy += " serta " + meanings[2]; // Arti Ketiga
+                }
+                if (meanings.length > 3) {
+                    // Jika ada 4 kata atau lebih, sisanya digabung dengan "sekaligus"
+                    const sisanya = meanings.slice(3).join(" sekaligus ");
+                    philosophy += " sekaligus " + sisanya;
+                }
+            }
+            
+            // 4. Masukkan ke elemen HTML
+            document.getElementById('philosophyText').innerText = `Menjadi simbol doa agar pemiliknya tumbuh sebagai pribadi yang ${philosophy}.`;
+
             document.getElementById('wordGrid').innerHTML = gridHTML;
             document.getElementById('resultArea').classList.remove('hidden');
 
